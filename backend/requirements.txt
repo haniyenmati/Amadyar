@@ -1,0 +1,4 @@
+Django==3.2.12
+djangorestframework==3.13.1
+django-phonenumber-field==6.1.0
+django-phonenumbers==1.0.1
