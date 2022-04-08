@@ -1,30 +1,44 @@
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser
+from django.contrib.auth.models import AbstractBaseUser, UserManager as DjangoUserManager
 from phonenumber_field.modelfields import PhoneNumberField
+import pyotp
 
+
+class UserManager(DjangoUserManager):
+    def create_user(self, phone_number):
+        secret = pyotp.random_base32()
+        otp =  pyotp.totp.TOTP(secret).now()
+        user = User(phone_number=phone_number, otp=otp)
+        user.set_unusable_password()
+        user.save()
+        print('otp is:', otp) # send sms
+        return user
+
+
+    def create_superuser(self,phone_number, password):
+        user = User(phone_number=phone_number)
+        user.set_password(password)
+        user.save()
+        return user
 
 class User(AbstractBaseUser):
     phone_number = PhoneNumberField(
         unique=True, null=False, blank=False
     )
     first_name = models.CharField(
-        max_length=256, default="", blank=True
+        max_length=256, default=str, blank=True
     )
     last_name = models.CharField(
-        max_length=256, default="", blank=True
-    )
-    national_code = models.CharField(
-        max_length=16, unique=True, blank=False, null=False
+        max_length=256, default=str, blank=True
     )
     joined_date = models.DateTimeField(auto_now_add=True)
     edited_date = models.DateTimeField(auto_now=True)
-    company = ... # foreginkey to haul.company
     otp = models.CharField(
-        max_length=16, null=True, blank=True
+        max_length=6, null=True, blank=True,  default=str
     )
-    password = None
     USERNAME_FIELD = 'phone_number'
 
+    objects = UserManager()
 
     @property
     def full_name(self):

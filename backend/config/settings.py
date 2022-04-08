@@ -44,6 +44,7 @@ THIRD_PARTIES = [
     'rest_framework',
     'phonenumber_field',
     'phonenumbers',
+    'rest_framework_simplejwt',
 ]
 
 LOCAL_APPS = [
@@ -112,6 +113,14 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+
+# restframework
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+}
 
 
 # Internationalization
