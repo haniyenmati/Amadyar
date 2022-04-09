@@ -7,7 +7,7 @@ from phonenumber_field.serializerfields import PhoneNumberField
 
 
 class PhoneNumberSerializer(serializers.serializers.Serializer):
-    phone_number = serializers.serializers.CharField()
+    phone_number = PhoneNumberField()
 
 class SignupSerializer(serializers.serializers.ModelSerializer):
     company_code = serializers.serializers.CharField(required=True)
@@ -27,13 +27,19 @@ class MyTokenObtainPairSerializer(serializers.TokenObtainPairSerializer):
             'otp': attrs['otp']
         }
 
+        if not PhoneNumberSerializer(data={"phone_number": authenticate_kwargs["phone_number"]}).is_valid():
+            raise exceptions.NotAcceptable("invliad phone number")
+
         try:
-            self.user = User.objects.get(**authenticate_kwargs)
+            self.user = User.objects.get(phone_number=authenticate_kwargs["phone_number"])
         except:
             raise exceptions.AuthenticationFailed(
                 self.error_messages["no_active_account"],
                 "no_active_account",
             )
+
+        if self.user.otp != authenticate_kwargs["otp"]:
+            raise exceptions.NotAcceptable("OTP does not match")
 
         if not api_settings.USER_AUTHENTICATION_RULE(self.user):
             raise exceptions.AuthenticationFailed(
@@ -47,6 +53,11 @@ class MyTokenObtainPairSerializer(serializers.TokenObtainPairSerializer):
 
         data["refresh"] = str(refresh)
         data["access"] = str(refresh.access_token)
+        data["phone_number"] = str(self.user.phone_number)
+        data["first_name"] = self.user.first_name
+        data["last_name"] = self.user.last_name
+        data["company"] = self.user.driver.company.name
+        data["company_code"] = self.user.driver.company.company_code
 
         if api_settings.UPDATE_LAST_LOGIN:
             update_last_login(None, self.user)

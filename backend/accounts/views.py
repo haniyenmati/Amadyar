@@ -14,7 +14,12 @@ class PhoneNumberCheck(GenericAPIView):
 
     def post(self, request, *args, **kwargs):
         if request.user.is_authenticated:
-            return {'msg': 'already logged in'}
+            return Response({'msg': 'already logged in'})
+
+        serializer = PhoneNumberSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response({'msg': 'invalid phone number'})
+        
         phone_number = request.data.get('phone_number')
         user_exists = User.objects.filter(phone_number=phone_number).exists()
         otp = OTPService.generate_otp()
