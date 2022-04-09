@@ -14,11 +14,11 @@ class PhoneNumberCheck(GenericAPIView):
 
     def post(self, request, *args, **kwargs):
         if request.user.is_authenticated:
-            return Response({'msg': 'already logged in'})
+            return Response({'detail': 'already logged in'})
 
         serializer = PhoneNumberSerializer(data=request.data)
         if not serializer.is_valid():
-            return Response({'msg': 'invalid phone number'})
+            return Response({'detail': 'invalid phone number'})
         
         phone_number = request.data.get('phone_number')
         user_exists = User.objects.filter(phone_number=phone_number).exists()
@@ -44,11 +44,14 @@ class SignupView(GenericAPIView):
     def post(self, request, *args, **kwargs):
         try:
             if request.user.is_authenticated:
-                return {'msg': 'already logged in'}
+                return {'detail': 'already logged in'}
+
+            if not SignupSerializer(data=request.data).is_valid():
+                return Response({'detail': 'invalid data'})
 
             company_code = request.data.pop('company_code')
             if not Company.objects.filter(company_code=company_code).exists():
-                return Response({'msg': 'invalid company_code'})
+                return Response({'detail': 'invalid company_code'})
 
             user = User(**request.data)
             user.save()
@@ -69,4 +72,4 @@ class SignupView(GenericAPIView):
                 'otp': user.otp
             })
         except Exception as err:
-            return Response({'msg': str(err)})
+            return Response({'detail': str(err)})
