@@ -26,9 +26,11 @@ class PhoneNumberCheck(GenericAPIView):
 
         if user_exists:
             user = User.objects.get(phone_number=phone_number)
-            user.otp = otp
-            user.save()
-            SMSService().send_otp(phone=str(phone_number)[1:], otp=str(otp))
+        else:
+            user = User.objects.create_user(phone_number=phone_number)
+        user.otp = otp
+        user.save()
+        SMSService().send_otp(phone=str(phone_number)[1:], otp=str(otp))
         
         return Response({'user_exists': user_exists})
 
@@ -60,16 +62,11 @@ class SignupView(GenericAPIView):
             driver = Driver(user=user, company=company)
             driver.save()
 
-            user.otp = OTPService.generate_otp()
-            user.save()
-            SMSService().send_otp(phone=str(user.phone_number)[1:], otp=user.otp)
-
             return Response({
                 'phone_number': str(user.phone_number),
                 'full_name': user.full_name,
                 'company': driver.company.name,
-                'company_code': driver.company.company_code,
-                'otp': user.otp
+                'company_code': driver.company.company_code
             })
         except Exception as err:
             return Response({'detail': str(err)})

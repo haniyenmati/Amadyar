@@ -132,7 +132,7 @@ class Order(models.Model):
     #     Car, on_delete=models.SET('deleted'), related_name='orders_set', null=True, blank=True
     # )
     driver: Driver = models.ForeignKey(
-        Driver, on_delete=models.SET('deleted'), related_name='orders_set'
+        Driver, on_delete=models.SET('deleted'), related_name='orders_set', default=1
     )
     origin: Storage = models.ForeignKey(
         Storage, on_delete=models.PROTECT, related_name='orders_set', null=True, blank=True

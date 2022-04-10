@@ -1,17 +1,13 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, UserManager as DjangoUserManager, PermissionsMixin
 from phonenumber_field.modelfields import PhoneNumberField
-import pyotp
 
 
 class UserManager(DjangoUserManager):
     def create_user(self, phone_number):
-        secret = pyotp.random_base32()
-        otp =  pyotp.totp.TOTP(secret).now()
-        user = User(phone_number=phone_number, otp=otp)
+        user = User(phone_number=phone_number)
         user.set_unusable_password()
         user.save()
-        print('otp is:', otp) # send sms
         return user
 
 

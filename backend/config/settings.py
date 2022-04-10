@@ -45,7 +45,7 @@ THIRD_PARTIES = [
     'rest_framework',
     'phonenumber_field',
     'phonenumbers',
-    'rest_framework_simplejwt',
+    'rest_framework.authtoken',
 ]
 
 LOCAL_APPS = [
