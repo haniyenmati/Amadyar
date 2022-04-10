@@ -1,3 +1,4 @@
+from distutils.command.upload import upload
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
@@ -43,10 +44,10 @@ class Storage(models.Model):
     label = models.CharField(
         max_length=256, null=False, blank=False
     )
-    longtitude = models.PositiveIntegerField(
+    longtitude = models.FloatField(
         default=0, null=False, blank=False
     )
-    latitude = models.PositiveIntegerField(
+    latitude = models.FloatField(
         default=0, null=False, blank=False
     )
     owner_company: Company = models.ForeignKey(
@@ -99,10 +100,10 @@ class Store(models.Model):
     store_code = models.CharField(
         max_length=64, null=False, blank=False, unique=True
     )
-    longtitude = models.PositiveIntegerField(
+    longtitude = models.FloatField(
         default=0, null=False, blank=False
     )
-    latitude = models.PositiveIntegerField(
+    latitude = models.FloatField(
         default=0, null=False, blank=False
     )
     owner_name = models.CharField(
@@ -141,12 +142,44 @@ class Order(models.Model):
     weight = models.PositiveIntegerField()
     start_tw = models.DateTimeField()
     end_tw = models.DateTimeField()
+    estimation_start = models.DateTimeField()
+    estimation_end = models.DateTimeField()
+
+    @property
+    def end_time(self):
+        end_time = self.logs_set.filter(action=LogAction.ENDED)
+        if end_time.exists():
+            return end_time
+        return None
+
+    @property
+    def start_time(self):
+        start_time = self.logs_set.filter(action=LogAction.STARTED)
+        if start_time.exists():
+            return start_time
+        return None
 
     def __str__(self) -> str:
         return self.title
 
     __repr__ = __str__
 
+
+class PathEstimation(models.Model):
+    order: Order = models.ForeignKey(
+        Order, on_delete=models.CASCADE, related_name='Paths'
+    )
+    longtitude = models.FloatField(
+        default=0, null=False, blank=False
+    )
+    latitude = models.FloatField(
+        default=0, null=False, blank=False
+    )
+
+    def __str__(self) -> str:
+        return f'{self.pk}-{self.order.title}'
+
+    __repr__ = __str__
 
 class LogAction(models.TextChoices):
     STARTED = 'ST', _('started-trip')
@@ -162,10 +195,10 @@ class OrderLog(models.Model):
     related_order: Order = models.ForeignKey(
         Order, on_delete=models.PROTECT, related_name='logs_set'
     )
-    longtitude = models.PositiveIntegerField(
+    longtitude = models.FloatField(
         default=0, null=False, blank=False
     )
-    latitude = models.PositiveIntegerField(
+    latitude = models.FloatField(
         default=0, null=False, blank=False
     )
     current_datetime = models.DateTimeField()
@@ -175,5 +208,16 @@ class OrderLog(models.Model):
 
     def __str__(self) -> str:
         return f'{self.related_order} - {self.action}'
+
+    __repr__ = __str__
+
+
+class EstimationFiles(models.Model):
+    orders = models.FileField()
+    routes = models.FileField()
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self) -> str:
+        return f'{self.uploaded_at}'
 
     __repr__ = __str__

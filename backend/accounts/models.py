@@ -36,6 +36,7 @@ class User(AbstractBaseUser):
     otp = models.CharField(
         max_length=6, null=True, blank=True,  default=str
     )
+    is_staff = models.BooleanField(default=False)
     USERNAME_FIELD = 'phone_number'
 
     objects = UserManager()
