@@ -128,8 +128,11 @@ class Order(models.Model):
     title = models.CharField(
         max_length=256, null=False, blank=False
     )
-    car: Car = models.ForeignKey(
-        Car, on_delete=models.SET('deleted'), related_name='orders_set', null=True, blank=True
+    # car: Car = models.ForeignKey(
+    #     Car, on_delete=models.SET('deleted'), related_name='orders_set', null=True, blank=True
+    # )
+    driver: Driver = models.ForeignKey(
+        Driver, on_delete=models.SET('deleted'), related_name='orders_set'
     )
     origin: Storage = models.ForeignKey(
         Storage, on_delete=models.PROTECT, related_name='orders_set', null=True, blank=True
