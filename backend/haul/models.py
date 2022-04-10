@@ -118,10 +118,10 @@ class Store(models.Model):
 
 
 class OrderStatus(models.TextChoices):
-    COMPLETE = 'CP', _('complete')
+    ASSIGNED = 'AS', _('assigned')
     IN_PROGRESS = 'IP', _('in-progress')
-    BACKLOG = 'BL', _('backlog')
-    MISSED = 'MS', _('missed')
+    ARRIVED = 'AR', _('arrived')
+    DELIVERED = 'DL', _('delivered')
 
 
 class Order(models.Model):
@@ -141,7 +141,7 @@ class Order(models.Model):
         Store, on_delete=models.PROTECT, related_name='orders_set', null=True, blank=True
     )
     status: OrderStatus = models.CharField(
-        max_length=2, choices=OrderStatus.choices, default=OrderStatus.BACKLOG
+        max_length=2, choices=OrderStatus.choices, default=OrderStatus.ASSIGNED
     )
     weight = models.PositiveIntegerField(null=True, blank=True)
     start_tw = models.FloatField(null=True)
