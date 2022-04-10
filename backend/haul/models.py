@@ -153,14 +153,14 @@ class Order(models.Model):
     def end_time(self):
         end_time = self.logs_set.filter(action=LogAction.ENDED)
         if end_time.exists():
-            return end_time
+            return end_time.current_datetime
         return None
 
     @property
     def start_time(self):
         start_time = self.logs_set.filter(action=LogAction.STARTED)
         if start_time.exists():
-            return start_time
+            return start_time.current_datetime
         return None
 
     def __str__(self) -> str:
