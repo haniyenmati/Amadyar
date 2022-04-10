@@ -127,8 +127,11 @@ class Order(models.Model):
     title = models.CharField(
         max_length=256, null=False, blank=False
     )
-    car: Car = models.ForeignKey(
-        Car, on_delete=models.SET('deleted'), related_name='orders_set'
+    # car: Car = models.ForeignKey(
+    #     Car, on_delete=models.SET('deleted'), related_name='orders_set'
+    # )
+    driver: Driver = models.ForeignKey(
+        Driver, on_delete=models.SET('deleted'), related_name='orders_set'
     )
     origin: Storage = models.ForeignKey(
         Storage, on_delete=models.PROTECT, related_name='orders_set'
@@ -149,14 +152,14 @@ class Order(models.Model):
     def end_time(self):
         end_time = self.logs_set.filter(action=LogAction.ENDED)
         if end_time.exists():
-            return end_time
+            return end_time.current_datetime
         return None
 
     @property
     def start_time(self):
         start_time = self.logs_set.filter(action=LogAction.STARTED)
         if start_time.exists():
-            return start_time
+            return start_time.current_datetime
         return None
 
     def __str__(self) -> str:
