@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, UserManager as DjangoUserManager
+from django.contrib.auth.models import AbstractBaseUser, UserManager as DjangoUserManager, PermissionsMixin
 from phonenumber_field.modelfields import PhoneNumberField
 import pyotp
 
@@ -15,13 +15,15 @@ class UserManager(DjangoUserManager):
         return user
 
 
-    def create_superuser(self,phone_number, password):
-        user = User(phone_number=phone_number)
+    def create_superuser(self,phone_number, password, **kwargs):
+        user = User(phone_number=phone_number, **kwargs)
         user.set_password(password)
+        user.is_staff = True
+        user.is_superuser = True
         user.save()
         return user
 
-class User(AbstractBaseUser):
+class User(AbstractBaseUser, PermissionsMixin):
     phone_number = PhoneNumberField(
         unique=True, null=False, blank=False
     )
@@ -37,6 +39,7 @@ class User(AbstractBaseUser):
         max_length=6, null=True, blank=True,  default=str
     )
     is_staff = models.BooleanField(default=False)
+    is_superuser = models.BooleanField(default=False)
     USERNAME_FIELD = 'phone_number'
 
     objects = UserManager()

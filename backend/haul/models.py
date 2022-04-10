@@ -1,4 +1,5 @@
-from distutils.command.upload import upload
+import json
+from typing import Optional, Iterable
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
@@ -128,25 +129,25 @@ class Order(models.Model):
         max_length=256, null=False, blank=False
     )
     # car: Car = models.ForeignKey(
-    #     Car, on_delete=models.SET('deleted'), related_name='orders_set'
+    #     Car, on_delete=models.SET('deleted'), related_name='orders_set', null=True, blank=True
     # )
     driver: Driver = models.ForeignKey(
         Driver, on_delete=models.SET('deleted'), related_name='orders_set'
     )
     origin: Storage = models.ForeignKey(
-        Storage, on_delete=models.PROTECT, related_name='orders_set'
+        Storage, on_delete=models.PROTECT, related_name='orders_set', null=True, blank=True
     )
     destination: Store = models.ForeignKey(
-        Store, on_delete=models.PROTECT, related_name='orders_set'
+        Store, on_delete=models.PROTECT, related_name='orders_set', null=True, blank=True
     )
     status: OrderStatus = models.CharField(
         max_length=2, choices=OrderStatus.choices, default=OrderStatus.BACKLOG
     )
-    weight = models.PositiveIntegerField()
-    start_tw = models.DateTimeField()
-    end_tw = models.DateTimeField()
-    estimation_start = models.DateTimeField()
-    estimation_end = models.DateTimeField()
+    weight = models.PositiveIntegerField(null=True, blank=True)
+    start_tw = models.FloatField(null=True)
+    end_tw = models.FloatField(null=True)
+    estimation_arrival = models.FloatField(null=True)
+    estimation_depart = models.FloatField(null=True)
 
     @property
     def end_time(self):
@@ -216,9 +217,45 @@ class OrderLog(models.Model):
 
 
 class EstimationFiles(models.Model):
-    orders = models.FileField()
-    routes = models.FileField()
+    orders = models.FileField(upload_to="static")
+    routes = models.FileField(upload_to="static")
     uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, force_insert: bool = ..., force_update: bool = ..., using: Optional[str] = ..., update_fields: Optional[Iterable[str]] = ...) -> None:
+        ret = super().save()
+
+        with open(self.orders.path, 'r') as jfo:
+            orders = json.load(jfo)['features']
+
+        with open(self.routes.path, 'r') as jfr:
+            routes = json.load(jfr)['features']
+
+        for route in routes:
+            print(route)
+            route_name = route['attributes']['Name']
+            orders_with_according_route = list(filter(lambda o: o['attributes']['RouteName'] == route_name, orders))
+
+            paths = route['geometry']['paths']
+
+            for path in paths:
+                path_order = orders_with_according_route[paths.index(path)-1]
+                order = Order(
+                    title=path_order['attributes']['Name'],
+                    estimation_arrival=path_order['attributes']['ArriveTimeUTC'],
+                    estimation_depart=path_order['attributes']['DepartTimeUTC'],
+                    start_tw=path_order['attributes']['TimeWindowStart1'],
+                    end_tw=path_order['attributes']['TimeWindowEnd1']
+                )
+                order.save()
+
+                for location in path:
+                    ope = PathEstimation(
+                        order=order,
+                        latitude=location[1],
+                        longtitude=location[0],
+                    )
+                    ope.save()
+        return ret
 
     def __str__(self) -> str:
         return f'{self.uploaded_at}'
