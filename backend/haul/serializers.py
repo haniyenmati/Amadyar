@@ -22,3 +22,13 @@ class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = '__all__'
+
+
+class OrderPathsSerializer(serializers.ModelSerializer):
+    paths = PathEstimationSerializer(read_only=True, many=True)
+    start_time = serializers.DateTimeField(read_only=True)
+    end_time = serializers.DateTimeField(read_only=True)
+
+    class Meta:
+        model = Order
+        fields = '__all__'
