@@ -65,7 +65,7 @@ class OTPCheckView(GenericAPIView):
 
         temp_otp = TempOTP.objects.get(phone_number=phone_number)
         if temp_otp.otp == otp:
-            return Response({'otp_is_valid': True})
+            return Response({'otp_is_valid': True}, status=200)
         return Response({'otp_is_valid': False}, status=400)
         
 
