@@ -14,11 +14,11 @@ class PhoneNumberCheck(GenericAPIView):
 
     def post(self, request, *args, **kwargs):
         if request.user.is_authenticated:
-            return Response({'detail': 'already logged in'})
+            return Response({'detail': 'already logged in'}, status=400)
 
         serializer = PhoneNumberSerializer(data=request.data)
         if not serializer.is_valid():
-            return Response({'detail': 'invalid phone number'})
+            return Response({'detail': 'invalid phone number'}, status=400)
         
         phone_number = request.data.get('phone_number')
         user_exists = User.objects.filter(phone_number=phone_number).exists()
@@ -51,22 +51,22 @@ class OTPCheckView(GenericAPIView):
 
     def post(self, request, *args, **kwargs):
         if request.user.is_authenticated:
-            return Response({'detail': 'already logged in'})
+            return Response({'detail': 'already logged in'}, status=400)
 
         serializer = OTPCheckSerializer(data=request.data)
         if not serializer.is_valid():
-            return Response({'detail': 'invalid information(phone_number/otp)'})
+            return Response({'detail': 'invalid information(phone_number/otp)'}, status=400)
 
         phone_number = serializer.validated_data['phone_number']
         otp = serializer.validated_data['otp']
         phone_number_is_valid = TempOTP.objects.filter(phone_number=phone_number).exists()
         if not phone_number_is_valid:
-            return Response({'detail': 'invalid phone number'})
+            return Response({'detail': 'invalid phone number'}, status=400)
 
         temp_otp = TempOTP.objects.get(phone_number=phone_number)
         if temp_otp.otp == otp:
             return Response({'otp_is_valid': True})
-        return Response({'otp_is_valid': False})
+        return Response({'otp_is_valid': False}, status=400)
         
 
 class SignupView(GenericAPIView):
@@ -77,14 +77,14 @@ class SignupView(GenericAPIView):
     def post(self, request, *args, **kwargs):
         try:
             if request.user.is_authenticated:
-                return {'detail': 'already logged in'}
+                return Response({'detail': 'already logged in'}, status=400)
 
             if not SignupSerializer(data=request.data).is_valid():
-                return Response({'detail': 'invalid data'})
+                return Response({'detail': 'invalid data'}, status=400)
 
             company_code = request.data.get('company_code')
             if not Company.objects.filter(company_code=company_code).exists():
-                return Response({'detail': 'invalid company_code'})
+                return Response({'detail': 'invalid company_code'}, status=400)
 
             user = User(
                 first_name=request.data['first_name'],
@@ -106,4 +106,4 @@ class SignupView(GenericAPIView):
                 'token': token
             })
         except Exception as err:
-            return Response({'detail': str(err)})
+            return Response({'detail': str(err)}, status=400)
