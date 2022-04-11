@@ -236,10 +236,12 @@ class EstimationFiles(models.Model):
             orders_with_according_route = list(filter(lambda o: o['attributes']['RouteName'] == route_name, orders))
 
             paths = route['geometry']['paths']
+            driver = Driver.objects.last()
 
             for path in paths:
                 path_order = orders_with_according_route[paths.index(path)-1]
                 order = Order(
+                    driver=driver,
                     title=path_order['attributes']['Name'],
                     estimation_arrival=path_order['attributes']['ArriveTimeUTC'],
                     estimation_depart=path_order['attributes']['DepartTimeUTC'],
