@@ -1,19 +1,34 @@
+from django.db.models import Q
+from rest_framework import status
+from rest_framework.response import Response
 from rest_framework.generics import ListAPIView
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
 
-from haul.models import PathEstimation, Order, Driver
-from haul.serializers import PathEstimationSerializer, OrderSerializer
+from haul.models import Order, Driver, OrderStatus
+from haul.serializers import OrderSerializer, OrderPathsSerializer
 
 
 # Create your views here.
-class OrderPathEstimationView(ListAPIView):
-    serializer_class = PathEstimationSerializer
+class NextOrderView(APIView):
+    serializer_class = OrderPathsSerializer
+    permission_classes = [IsAuthenticated]
 
+    @property
     def get_queryset(self):
-        return PathEstimation.objects.filter(order_id=self.kwargs['order_pk']).order_by('id')
+        user = self.request.user
+        driver = Driver.objects.get(user=user)
+        return Order.objects.filter(driver=driver).filter(~Q(status=OrderStatus.DELIVERED)).order_by('id').first()
+
+    def get(self, request, *args, **kwargs):
+        print(request.user)
+        ser = self.serializer_class(self.get_queryset)
+        return Response(ser.data, status=status.HTTP_200_OK)
 
 
 class OrdersView(ListAPIView):
     serializer_class = OrderSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
@@ -24,9 +39,9 @@ class OrdersView(ListAPIView):
 
 class UncompletedOrdersView(ListAPIView):
     serializer_class = OrderSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
         driver = Driver.objects.get(user=user)
-        # TODO return items which are not completed
-        return Order.objects.filter(driver=driver)
+        return Order.objects.filter(driver=driver).filter(~Q(status=OrderStatus.DELIVERED)).order_by('id')
