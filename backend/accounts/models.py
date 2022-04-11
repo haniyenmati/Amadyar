@@ -52,3 +52,15 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.full_name
 
     __repr__ = __str__
+
+
+class TempOTP(models.Model):
+    otp = models.CharField(max_length=6)
+    phone_number = PhoneNumberField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    edited_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self) -> str:
+        return self.otp
+
+    __repr__ = __str__

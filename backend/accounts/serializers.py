@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework import exceptions
 from django.contrib.auth.models import update_last_login
-from accounts.models import User
+from accounts.models import User, TempOTP
 from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework.authtoken.models import Token
 
@@ -14,6 +14,12 @@ class SignupSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields =  ['phone_number', 'first_name', 'last_name', 'company_code']
+
+class OTPCheckSerializer(serializers.ModelSerializer):
+    phone_number = PhoneNumberField()
+    class Meta:
+        model = TempOTP
+        fields = ['phone_number', 'otp']
 
 class MyTokenObtainPairSerializer(serializers.Serializer):
     phone_number = PhoneNumberField()

@@ -2,8 +2,8 @@ from django.db.transaction import atomic
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
-from accounts.serializers import MyTokenObtainPairSerializer, PhoneNumberSerializer, SignupSerializer
-from accounts.models import User
+from accounts.serializers import MyTokenObtainPairSerializer, OTPCheckSerializer, PhoneNumberSerializer, SignupSerializer
+from accounts.models import TempOTP, User
 from haul.models import Driver, Company
 from accounts.services import SMSService, OTPService
 
@@ -26,10 +26,16 @@ class PhoneNumberCheck(GenericAPIView):
 
         if user_exists:
             user = User.objects.get(phone_number=phone_number)
+            user.otp = otp
+            user.save()
         else:
-            user = User.objects.create_user(phone_number=phone_number)
-        user.otp = otp
-        user.save()
+            if TempOTP.objects.filter(phone_number=phone_number).exists():
+                temp_otp = TempOTP.objects.get(phone_number=phone_number)
+                temp_otp.otp = otp
+            else:
+                temp_otp = TempOTP(phone_number=phone_number, otp=otp)
+            temp_otp.save()
+
         SMSService().send_otp(phone=str(phone_number)[1:], otp=str(otp))
         
         return Response({'user_exists': user_exists})
@@ -37,6 +43,31 @@ class PhoneNumberCheck(GenericAPIView):
 
 class LoginView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
+
+
+class OTPCheckView(GenericAPIView):
+    def get_serializer_class(self):
+        return OTPCheckSerializer
+
+    def post(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return Response({'detail': 'already logged in'})
+
+        serializer = OTPCheckSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response({'detail': 'invalid information(phone_number/otp)'})
+
+        phone_number = serializer.validated_data['phone_number']
+        otp = serializer.validated_data['otp']
+        phone_number_is_valid = TempOTP.objects.filter(phone_number=phone_number).exists()
+        if not phone_number_is_valid:
+            return Response({'detail': 'invalid phone number'})
+
+        temp_otp = TempOTP.objects.get(phone_number=phone_number)
+        if temp_otp.otp == otp:
+            return Response({'otp_is_valid': True})
+        return Response({'otp_is_valid': False})
+        
 
 class SignupView(GenericAPIView):
     def get_serializer_class(self):
