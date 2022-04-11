@@ -46,7 +46,7 @@ class Storage(models.Model):
     label = models.CharField(
         max_length=256, null=False, blank=False
     )
-    longtitude = models.FloatField(
+    longitude = models.FloatField(
         default=0, null=False, blank=False
     )
     latitude = models.FloatField(
@@ -102,7 +102,7 @@ class Store(models.Model):
     store_code = models.CharField(
         max_length=64, null=False, blank=False, unique=True
     )
-    longtitude = models.FloatField(
+    longitude = models.FloatField(
         default=0, null=False, blank=False
     )
     latitude = models.FloatField(
@@ -151,6 +151,11 @@ class Order(models.Model):
     estimation_depart = models.FloatField(null=True)
 
     @property
+    def paths(self):
+        print('paths called')
+        return self.Paths.order_by('id')
+
+    @property
     def end_time(self):
         end_time = self.logs_set.filter(action=LogAction.ENDED)
         if end_time.exists():
@@ -174,7 +179,7 @@ class PathEstimation(models.Model):
     order: Order = models.ForeignKey(
         Order, on_delete=models.CASCADE, related_name='Paths'
     )
-    longtitude = models.FloatField(
+    longitude = models.FloatField(
         default=0, null=False, blank=False
     )
     latitude = models.FloatField(
@@ -200,7 +205,7 @@ class OrderLog(models.Model):
     related_order: Order = models.ForeignKey(
         Order, on_delete=models.PROTECT, related_name='logs_set'
     )
-    longtitude = models.FloatField(
+    longitude = models.FloatField(
         default=0, null=False, blank=False
     )
     latitude = models.FloatField(
@@ -256,7 +261,7 @@ class EstimationFiles(models.Model):
                     ope = PathEstimation(
                         order=order,
                         latitude=location[1],
-                        longtitude=location[0],
+                        longitude=location[0],
                     )
                     ope.save()
         return ret
