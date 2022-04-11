@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 from typing import Optional, Iterable
 from django.db import models
@@ -217,8 +218,9 @@ class OrderLog(models.Model):
 
 
 class EstimationFiles(models.Model):
-    orders = models.FileField(upload_to="static")
-    routes = models.FileField(upload_to="static")
+    now = datetime.now()
+    orders = models.FileField(upload_to=f"static/{now}")
+    routes = models.FileField(upload_to=f"static/{now}")
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, force_insert: bool = ..., force_update: bool = ..., using: Optional[str] = ..., update_fields: Optional[Iterable[str]] = ...) -> None:
@@ -231,7 +233,6 @@ class EstimationFiles(models.Model):
             routes = json.load(jfr)['features']
 
         for route in routes:
-            print(route)
             route_name = route['attributes']['Name']
             orders_with_according_route = list(filter(lambda o: o['attributes']['RouteName'] == route_name, orders))
 
@@ -248,6 +249,7 @@ class EstimationFiles(models.Model):
                     start_tw=path_order['attributes']['TimeWindowStart1'],
                     end_tw=path_order['attributes']['TimeWindowEnd1']
                 )
+
                 order.save()
 
                 for location in path:
