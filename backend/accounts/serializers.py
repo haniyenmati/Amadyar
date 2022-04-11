@@ -27,7 +27,7 @@ class MyTokenObtainPairSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         authenticate_kwargs = {
-            self.username_field: attrs[self.username_field],
+            'phone_number': attrs['phone_number'],
             'otp': attrs['otp']
         }
 

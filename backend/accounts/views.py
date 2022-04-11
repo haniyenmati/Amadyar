@@ -82,22 +82,28 @@ class SignupView(GenericAPIView):
             if not SignupSerializer(data=request.data).is_valid():
                 return Response({'detail': 'invalid data'})
 
-            company_code = request.data.pop('company_code')
+            company_code = request.data.get('company_code')
             if not Company.objects.filter(company_code=company_code).exists():
                 return Response({'detail': 'invalid company_code'})
 
-            user = User(**request.data)
+            user = User(
+                first_name=request.data['first_name'],
+                last_name=request.data['last_name'],
+                phone_number=request.data['phone_number'])
             user.save()
 
             company = Company.objects.get(company_code=company_code)
             driver = Driver(user=user, company=company)
             driver.save()
 
+            token = MyTokenObtainPairSerializer.get_token(user=user)
+
             return Response({
                 'phone_number': str(user.phone_number),
                 'full_name': user.full_name,
                 'company': driver.company.name,
-                'company_code': driver.company.company_code
+                'company_code': driver.company.company_code,
+                'token': token
             })
         except Exception as err:
             return Response({'detail': str(err)})

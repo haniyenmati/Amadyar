@@ -1,7 +1,7 @@
 from django.urls import path
 from haul.views import OrderPathEstimationView, OrdersView, UncompletedOrdersView
 
-app_name = 'accounts'
+app_name = 'haul'
 
 urlpatterns = [
     path('order/', OrdersView.as_view(), name='orders'),
