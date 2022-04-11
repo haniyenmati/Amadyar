@@ -100,7 +100,8 @@ class SignupView(GenericAPIView):
 
             return Response({
                 'phone_number': str(user.phone_number),
-                'full_name': user.full_name,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
                 'company': driver.company.name,
                 'company_code': driver.company.company_code,
                 'token': token
