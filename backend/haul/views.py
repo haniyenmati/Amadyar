@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 
 from haul.models import Order, Driver, OrderStatus
-from haul.serializers import OrderSerializer, OrderPathsSerializer
+from haul.serializers import OrderSerializer, OrderPathsSerializer, ChangeOrderStatusSerializer
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView, GenericAPIView
 
