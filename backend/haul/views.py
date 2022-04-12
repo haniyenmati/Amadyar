@@ -11,21 +11,19 @@ from rest_framework.response import Response
 from rest_framework.generics import ListAPIView, GenericAPIView
 
 
-
 # Create your views here.
 class NextOrderView(APIView):
     serializer_class = OrderPathsSerializer
     permission_classes = [IsAuthenticated]
 
-    @property
     def get_queryset(self):
         user = self.request.user
         driver = Driver.objects.get(user=user)
-        return Order.objects.filter(driver=driver).filter(~Q(status=OrderStatus.DELIVERED)).order_by('id').first()
+        qs = Order.objects.filter(driver=driver).filter(~Q(status=OrderStatus.DELIVERED)).order_by('estimation_arrival')
+        return qs.first()
 
     def get(self, request, *args, **kwargs):
-        print(request.user)
-        ser = self.serializer_class(self.get_queryset)
+        ser = self.serializer_class(self.get_queryset())
         return Response(ser.data, status=status.HTTP_200_OK)
 
 
@@ -47,7 +45,9 @@ class UncompletedOrdersView(ListAPIView):
     def get_queryset(self):
         user = self.request.user
         driver = Driver.objects.get(user=user)
-        return Order.objects.filter(driver=driver).filter(~Q(status=OrderStatus.DELIVERED)).order_by('id')
+        # TODO filter estimation today
+        return Order.objects.filter(driver=driver).filter(~Q(status=OrderStatus.DELIVERED)).order_by(
+            'estimation_arrival')
 
 
 class ChangeOrderStatus(GenericAPIView):
