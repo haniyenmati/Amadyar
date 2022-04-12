@@ -1,5 +1,6 @@
 from datetime import datetime
 import json
+from random import choices
 from typing import Optional, Iterable
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -133,7 +134,7 @@ class Order(models.Model):
     #     Car, on_delete=models.SET('deleted'), related_name='orders_set', null=True, blank=True
     # )
     driver: Driver = models.ForeignKey(
-        Driver, on_delete=models.SET('deleted'), related_name='orders_set', default=1
+        Driver, on_delete=models.PROTECT, related_name='orders_set', default=1
     )
     origin: Storage = models.ForeignKey(
         Storage, on_delete=models.PROTECT, related_name='orders_set', null=True, blank=True
@@ -168,6 +169,13 @@ class Order(models.Model):
         if start_time.exists():
             return start_time.current_datetime
         return None
+
+    def change_order_status(self, to: str):
+        for status in OrderStatus.choices:
+            if to == status[0] or to == status[1]:
+                self.status = status
+                self.save()
+        return self.status
 
     def __str__(self) -> str:
         return self.title
