@@ -145,7 +145,7 @@ class Order(models.Model):
     status: OrderStatus = models.CharField(
         max_length=2, choices=OrderStatus.choices, default=OrderStatus.ASSIGNED
     )
-    weight = models.PositiveIntegerField(null=True, blank=True)
+    weight = models.FloatField(null=True, blank=True)
     start_tw = models.FloatField(null=True)
     end_tw = models.FloatField(null=True)
     estimation_arrival = models.FloatField(null=True)
@@ -234,6 +234,8 @@ class EstimationFiles(models.Model):
     now = datetime.now()
     orders = models.FileField(upload_to=f"static/{now}")
     routes = models.FileField(upload_to=f"static/{now}")
+    depot = models.FileField(upload_to=f"static/{now}", null=True)
+    depot_visit = models.FileField(upload_to=f"static/{now}", null=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, force_insert: bool = ..., force_update: bool = ..., using: Optional[str] = ..., update_fields: Optional[Iterable[str]] = ...) -> None:
@@ -257,6 +259,7 @@ class EstimationFiles(models.Model):
                 order = Order(
                     driver=driver,
                     title=path_order['attributes']['Name'],
+                    weight=path_order['attributes']['DeliveryQuantities'],
                     estimation_arrival=path_order['attributes']['ArriveTimeUTC'],
                     estimation_depart=path_order['attributes']['DepartTimeUTC'],
                     start_tw=path_order['attributes']['TimeWindowStart1'],
