@@ -35,3 +35,7 @@ class OrderPathsSerializer(serializers.ModelSerializer):
     
 class ChangeOrderStatusSerializer(serializers.Serializer):
     status = serializers.ChoiceField(choices=OrderStatus.choices)
+
+
+class OrderLogsListSerializer(serializers.Serializer):
+    logs = serializers.JSONField()

@@ -224,6 +224,12 @@ class OrderLog(models.Model):
         max_length=2, choices=LogAction.choices, default=LogAction.STARTED
     )
 
+    @classmethod
+    def create_logs_from_list(cls, order_pk: int, logs: list):
+        order = Order.objects.get(id=order_pk)
+        for log in logs:
+            cls.objects.create(related_order=order, **log)
+        
     def __str__(self) -> str:
         return f'{self.related_order} - {self.action}'
 

@@ -5,8 +5,8 @@ from rest_framework.generics import ListAPIView
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 
-from haul.models import Order, Driver, OrderStatus
-from haul.serializers import OrderSerializer, OrderPathsSerializer, ChangeOrderStatusSerializer
+from haul.models import Order, Driver, OrderStatus, OrderLog
+from haul.serializers import OrderLogSerializer, OrderSerializer, OrderPathsSerializer, ChangeOrderStatusSerializer, OrderLogsListSerializer
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView, GenericAPIView
 
@@ -61,6 +61,20 @@ class ChangeOrderStatus(GenericAPIView):
            order = Order.objects.get(id=kwargs.get('order_pk'))
            ret = order.change_order_status(to=serializer.validated_data['status'])
            return Response({"new_status": ret})
+
+        except Exception as err:
+            return Response({"detail": f"{err}"}, status=400)
+
+
+class CreateOrderLogsList(GenericAPIView):
+    serializer_class = OrderLogsListSerializer
+
+    def post(self, request, *args, **kwargs):
+        order_pk = kwargs.get('order_pk')
+
+        try:
+           OrderLog.create_logs_from_list(order_pk=order_pk, logs=request.data["logs"])
+           return Response({"ok": True})
 
         except Exception as err:
             return Response({"detail": f"{err}"}, status=400)
