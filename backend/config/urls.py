@@ -1,10 +1,9 @@
 from django.contrib import admin
 from django.urls import path, include
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-    TokenVerifyView
-)
+
+
+admin.site.site_header = 'Amadyar Admin Panel'
+admin.site.site_title = 'Amadyar'
 
 urlpatterns = [
     path('admin/', admin.site.urls),
