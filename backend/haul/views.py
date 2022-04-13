@@ -1,12 +1,11 @@
 from django.db.models import Q
 from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.generics import ListAPIView
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 
 from haul.models import Order, Driver, OrderStatus, OrderLog
-from haul.serializers import OrderLogSerializer, OrderSerializer, OrderPathsSerializer, ChangeOrderStatusSerializer, OrderLogsListSerializer
+from haul.serializers import OrderSerializer, OrderPathsSerializer, ChangeOrderStatusSerializer, \
+    OrderLogsListSerializer
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView, GenericAPIView
 
@@ -23,8 +22,11 @@ class NextOrderView(APIView):
         return qs.first()
 
     def get(self, request, *args, **kwargs):
-        ser = self.serializer_class(self.get_queryset())
-        return Response(ser.data, status=status.HTTP_200_OK)
+        qs = self.get_queryset()
+        if qs:
+            ser = self.serializer_class(qs)
+            return Response(ser.data, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_404_NOT_FOUND)
 
 
 class OrdersView(ListAPIView):
@@ -57,10 +59,10 @@ class ChangeOrderStatus(GenericAPIView):
         serializer = ChangeOrderStatusSerializer(data=request.data)
 
         try:
-           serializer.is_valid(raise_exception=True)
-           order = Order.objects.get(id=kwargs.get('order_pk'))
-           ret = order.change_order_status(to=serializer.validated_data['status'])
-           return Response({"new_status": ret})
+            serializer.is_valid(raise_exception=True)
+            order = Order.objects.get(id=kwargs.get('order_pk'))
+            ret = order.change_order_status(to=serializer.validated_data['status'])
+            return Response({"new_status": ret})
 
         except Exception as err:
             return Response({"detail": f"{err}"}, status=400)
@@ -73,8 +75,8 @@ class CreateOrderLogsList(GenericAPIView):
         order_pk = kwargs.get('order_pk')
 
         try:
-           OrderLog.create_logs_from_list(order_pk=order_pk, logs=request.data["logs"])
-           return Response({"ok": True})
+            OrderLog.create_logs_from_list(order_pk=order_pk, logs=request.data["logs"])
+            return Response({"ok": True})
 
         except Exception as err:
             return Response({"detail": f"{err}"}, status=400)
