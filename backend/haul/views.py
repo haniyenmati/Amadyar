@@ -19,9 +19,7 @@ class NextOrderView(APIView):
         user = self.request.user
         driver = Driver.objects.get(user=user)
         qs = Order.objects.filter(driver=driver).filter(~Q(status=OrderStatus.DELIVERED)).order_by('estimation_arrival')
-        if qs:
-            return qs.first()
-        return Order.objects.create(title="init", driver=driver)
+        return qs.first()
 
     def get(self, request, *args, **kwargs):
         qs = self.get_queryset()
@@ -39,7 +37,7 @@ class OrdersView(ListAPIView):
         user = self.request.user
         driver = Driver.objects.get(user=user)
         # TODO get date or day numbers from query param and filter items by that time
-        return Order.objects.filter(driver=driver)
+        return Order.objects.filter(driver=driver).order_by('estimation_arrival')
 
 
 class UncompletedOrdersView(ListAPIView):
