@@ -237,12 +237,11 @@ class OrderLog(models.Model):
 
 
 class EstimationFiles(models.Model):
-    now = datetime.now()
-    orders = models.FileField(upload_to=f"static/{now}")
-    routes = models.FileField(upload_to=f"static/{now}")
-    depot = models.FileField(upload_to=f"static/{now}", null=True)
-    depot_visit = models.FileField(upload_to=f"static/{now}", null=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
+    orders = models.FileField(upload_to=f"static/{uploaded_at}")
+    routes = models.FileField(upload_to=f"static/{uploaded_at}")
+    depot = models.FileField(upload_to=f"static/{uploaded_at}", null=True)
+    depot_visit = models.FileField(upload_to=f"static/{uploaded_at}", null=True)
 
     def save(self, force_insert: bool = ..., force_update: bool = ..., using: Optional[str] = ..., update_fields: Optional[Iterable[str]] = ...) -> None:
         ret = super().save()
