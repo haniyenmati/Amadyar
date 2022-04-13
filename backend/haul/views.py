@@ -1,4 +1,3 @@
-from django.db.models import Q
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
@@ -18,7 +17,7 @@ class NextOrderView(APIView):
     def get_queryset(self):
         user = self.request.user
         driver = Driver.objects.get(user=user)
-        qs = Order.objects.filter(driver=driver).filter(~Q(status=OrderStatus.DELIVERED)).order_by('estimation_arrival')
+        qs = Order.objects.filter(driver=driver).exclude(status=OrderStatus.DELIVERED).order_by('estimation_arrival')
         return qs.first()
 
     def get(self, request, *args, **kwargs):
@@ -48,7 +47,7 @@ class UncompletedOrdersView(ListAPIView):
         user = self.request.user
         driver = Driver.objects.get(user=user)
         # TODO filter estimation today
-        return Order.objects.filter(driver=driver).filter(~Q(status=OrderStatus.DELIVERED)).order_by(
+        return Order.objects.filter(driver=driver).exclude(status=OrderStatus.DELIVERED).order_by(
             'estimation_arrival')
 
 
