@@ -173,7 +173,7 @@ class Order(models.Model):
     def change_order_status(self, to: str):
         for status in OrderStatus.choices:
             if to == status[0] or to == status[1]:
-                self.status = status
+                self.status = status[0]
                 self.save()
         return self.status
 
